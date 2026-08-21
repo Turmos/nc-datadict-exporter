@@ -2,12 +2,16 @@
 
 独立 Java 桌面应用：连接 NC6.5 的 Oracle 元数据库，导出为离线数据字典网页（单 HTML 文件），可发给任何人用浏览器直接查看；也可按功能节点号 / 自定义档案 PK 递归导出 SQL(INSERT) 脚本，支持 10 套程序界面主题。开源、MIT 许可。
 
+## 致谢 · 灵感来源
+本项目立项与思路深受以下开源作品启发，在此向原作者**致敬**：
+- [yhlx / idea_plugin_nc5devplugin](https://gitee.com/yhlx/idea_plugin_nc5devplugin) —— 感谢大佬的无私分享，为 NC 开发插件与元数据读取提供了宝贵参考。
+
 ## 产物
 | 目录 | 说明 |
 | --- | --- |
 | `src/` | 主程序源码（纯 Swing + FlatLaf，JDK8+ 兼容） |
 | `demo/` | 演示数据导出（离线生成示例数据字典网页，无需连库） |
-| `resources/template.html` | 数据字典网页模板（城建绿风格） |
+| `resources/template.html` | 数据字典网页模板（经典蓝风格） |
 | `drivers/` | JDBC 驱动（ojdbc6/8/11，可自行增减，运行时自动扫描加载） |
 | `lib/` | fastjson、flatlaf 依赖 |
 | `dist/` | 绿色版分发：可运行 jar + 驱动 + 启动批处理（需本机 Java 8+） |
