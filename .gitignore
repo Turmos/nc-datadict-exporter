@@ -4,6 +4,7 @@ dist/
 dist-exe/
 demo_out/
 build/
+release/
 
 # ===== 第三方 / 专有依赖（构建时需要，不入库）=====
 # Oracle JDBC 驱动与 flatlaf/fastjson 等 jar 为第三方/专有包
