@@ -1,0 +1,41 @@
+# ===== 构建输出产物 =====
+out/
+dist/
+dist-exe/
+demo_out/
+build/
+
+# ===== 第三方 / 专有依赖（构建时需要，不入库）=====
+# Oracle JDBC 驱动与 flatlaf/fastjson 等 jar 为第三方/专有包
+lib/
+drivers/
+*.jar
+
+# ===== 潜在敏感配置（数据库连接串等，不入库）=====
+config.json
+*.properties
+*.conf
+
+# ===== 打包压缩包 =====
+*.zip
+*.7z
+*.tar.gz
+
+# ===== 旧品牌备份（含厂商标识，不发布）=====
+resources/template.backup.html
+
+# ===== IDE / 编辑器 =====
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+*.swp
+*.swo
+
+# ===== 系统 / 临时 =====
+Thumbs.db
+.DS_Store
+*.log
+*.tmp
