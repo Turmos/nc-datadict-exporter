@@ -10,13 +10,14 @@ import java.util.List;
 
 /**
  * JDBC 驱动注册中心：自动扫描可执行程序同级 drivers/ 目录下所有 jar，
- * 逐个尝试加载已知的 Oracle 驱动类并注册到 DriverManager。
+ * 逐个尝试加载已知驱动类（Oracle / OceanBase 等）并注册到 DriverManager。
  * 用户有特殊的 ojdbc14/classes12 等老驱动，丢进 drivers/ 目录即可，无需改代码。
  */
 public final class DbDrivers {
     private static final String[] CANDIDATE_CLASSES = {
             "oracle.jdbc.OracleDriver",
-            "oracle.jdbc.driver.OracleDriver"
+            "oracle.jdbc.driver.OracleDriver",
+            "com.oceanbase.jdbc.Driver"
     };
 
     private DbDrivers() {

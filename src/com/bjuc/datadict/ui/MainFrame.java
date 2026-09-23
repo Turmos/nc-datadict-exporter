@@ -90,7 +90,8 @@ public class MainFrame extends JFrame {
             "oracle.jdbc.driver.OracleDriver（Oracle 8i/9i 老版本）",
             "com.mysql.cj.jdbc.Driver（MySQL）",
             "org.postgresql.Driver（PostgreSQL）",
-            "com.microsoft.sqlserver.jdbc.SQLServerDriver（SQL Server）"
+            "com.microsoft.sqlserver.jdbc.SQLServerDriver（SQL Server）",
+            "com.oceanbase.jdbc.Driver（OceanBase，Oracle 模式）"
     });
     private final JTextField outDirField = new JTextField();
     private final JCheckBox openChk = new JCheckBox("导出成功后自动打开网页", true);
@@ -129,6 +130,13 @@ public class MainFrame extends JFrame {
 
     /** 渐变色进度条（读取模块 / 导出共用，同一时刻至多一个流程在使用） */
     private final GradientBar gradientBar = new GradientBar();
+
+    /** 数据字典导出目录名与 HTML 文件名 —— 固定 ASCII 名称，避免中文文件名在 Web 服务器上乱码，
+     *  且每次导出都是同一个链接，无需重新分发地址。数据文件自动生成在 <目录名>_data/ 下，整个目录一并上传即可。 */
+    private static final String EXPORT_DIR_NAME = "nc-datadict";
+    private static final String EXPORT_HTML_NAME = "index.html";
+    /** 上传发布基础地址：导出完成后在日志控制台给出预拼接的可访问地址 */
+    private static final String PUBLISH_BASE_URL = "http://192.168.55.16:9080/pims/dictionary/";
 
     public MainFrame() {
         super(Main.APP_NAME);
@@ -234,7 +242,7 @@ public class MainFrame extends JFrame {
         JLabel title = new JLabel("NC 数据字典导出工具");
         title.setForeground(Main.TEXT_ON_PRIMARY);
         title.setFont(f(17, Font.BOLD));
-        JLabel sub = new JLabel("极简 · 高效 · 安全  —  连接 NC6.5 Oracle 元数据库，一键导出离线数据字典网页");
+        JLabel sub = new JLabel("极简 · 高效 · 安全  —  连接 NC6.5 元数据库（Oracle / OceanBase），一键导出离线数据字典网页");
         sub.setForeground(tint(Main.TEXT_ON_PRIMARY, 215));
         sub.setFont(f(11.5f, Font.PLAIN));
         box.add(title);
@@ -1459,8 +1467,8 @@ public class MainFrame extends JFrame {
                 };
                 DataDictionary dict = loader.load(cfg, scope.isEmpty() ? null : scope, pr);
                 publish(new Object[]{"step", "正在生成网页…"});
-                String name = "NC数据字典_" + stamp01(dict.ncVersion) + ".html";
-                File out = new File(outDir, name);
+                // 固定 ASCII 命名：outDir/nc-datadict/index.html，数据文件自动生成到 nc-datadict/index_data/
+                File out = new File(new File(outDir, EXPORT_DIR_NAME), EXPORT_HTML_NAME);
                 HtmlExporter.export(dict, out);
                 return out.getAbsolutePath();
             }
@@ -1711,6 +1719,10 @@ public class MainFrame extends JFrame {
             gradientBar.finish();
             statusLabel.setText(successStatus + path);
             log(successStatus + "！文件位于：" + path);
+            if (openHtml) {
+                // 仅数据字典 HTML 导出：给出上传服务器后可访问的预拼接地址
+                log("上传后访问地址：" + PUBLISH_BASE_URL + EXPORT_DIR_NAME + "/" + EXPORT_HTML_NAME);
+            }
             showToast("导出成功", true);
             if (openHtml && openChk.isSelected()) {
                 try {

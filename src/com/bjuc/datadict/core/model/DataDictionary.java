@@ -48,6 +48,10 @@ public class DataDictionary {
         public String aggFullClassName;
         public String componentId;
         public int classType;
+        /** 所属业务资源模块（md_table.resmodule），用于主从关系分组 */
+        public String resmodule;
+        /** 是否为该 resmodule 下的主表（含 BD/smart/非空主表标记） */
+        public boolean isMaster;
         public List<Prop> props = new ArrayList<Prop>();
         /** 实体关联的功能/菜单/单据类型（按 md_class.id ↔ sm_funcregister.mdid 关联） */
         public List<ClsFunc> funcs = new ArrayList<ClsFunc>();

@@ -199,6 +199,10 @@ public class DictLoader {
             // 表名兜底补全：个别类 defaulttablename 为空时，从 md_table 按类关联回填
             backfillTableNames(conn, id2Cls, progress);
 
+            // 5.5 主从分组标记：md_table.resmodule 把同业务模块的表归组，
+            //     含 BD/smart/非空“主表标记”列的那个表为该组主表，其余为它的子表
+            markMasterChildren(conn, id2Cls, progress);
+
             // 绑定 md_property 的筛选：仅过滤选中组件涉及的类；类查询异常导致集合为空时退回全量，保证数据不丢
             if (filterByScope && !id2Cls.isEmpty()) {
                 String pw = inWhere("classid", id2Cls.keySet());
@@ -474,6 +478,109 @@ public class DictLoader {
             return true;
         } catch (Throwable e) {
             return false;
+        }
+    }
+
+    /**
+     * 主从分组标记：同一 md_table.resmodule 下的表归为一组；组内那个“主表标记列”的值
+     * 含 BD / smart（或非空，按用户规则）的表即为主表，其余为该主表的子表。
+     * 结果写入每个 Cls 的 resmodule 与 isMaster，前端据此组织“主表 ⇄ 子表”。
+     * 主表标记列名不固定，先按候选列名取，取不到再按内容扫描（含 BDMODE/smart 的列）。
+     */
+    private static void markMasterChildren(Connection conn,
+                                           Map<String, DataDictionary.Cls> id2Cls,
+                                           Progress progress) {
+        if (id2Cls.isEmpty()) {
+            return;
+        }
+        int iMain = -1;
+        int iName = -1;
+        int iRes = -1;
+        try (Statement st = conn.createStatement();
+             ResultSet rs = st.executeQuery("select * from md_table")) {
+            ResultSetMetaData md = rs.getMetaData();
+            iName = findColumn(md, "name");
+            iRes = findColumn(md, "resmodule");
+            if (iName < 0 || iRes < 0) {
+                progress.log("md_table 缺 name/resmodule 列，跳过主从分组");
+                return;
+            }
+            iMain = -1;
+            // 候选列名
+            String[] cand = {"mainflag", "ismaintable", "maintable", "maintableflag", "tableflag", "flag", "tclass", "maintab"};
+            for (String nm : cand) {
+                int ix = findColumn(md, nm);
+                if (ix > 0) { iMain = ix; break; }
+            }
+            // 内容扫描：含 BDMODE / smart 的列即为主表标记列
+            if (iMain < 0) {
+                while (rs.next()) {
+                    for (int i = 1; i <= md.getColumnCount(); i++) {
+                        if (i == iName || i == iRes) continue;
+                        String v = rs.getString(i);
+                        if (v == null) continue;
+                        String low = v.toLowerCase(Locale.ROOT);
+                        if (low.indexOf("bdmode") >= 0 || low.indexOf("smart") >= 0) {
+                            iMain = i; break;
+                        }
+                    }
+                    if (iMain > 0) break;
+                }
+            }
+        } catch (Throwable e) {
+            progress.log("md_table 主从分组探测不可读(可忽略): " + e.getMessage());
+            return;
+        }
+        progress.log(iMain > 0 ? "md_table 主表标记列已识别(resmodule 分组可用)" : "md_table 未找到主表标记列，仅按 resmodule 分组");
+
+        Map<String, Boolean> masterByTbl = new HashMap<String, Boolean>();
+        Map<String, String> moduleByTbl = new HashMap<String, String>();
+        try (Statement st = conn.createStatement();
+             ResultSet rs = st.executeQuery("select * from md_table")) {
+            ResultSetMetaData md = rs.getMetaData();
+            int rName = findColumn(md, "name");
+            int rRes = findColumn(md, "resmodule");
+            int rMain = iMain > 0 ? iMain : -1;
+            while (rs.next()) {
+                String name = strAt(rs, rName);
+                if (name == null || name.isEmpty()) continue;
+                String t = name.toLowerCase(Locale.ROOT);
+                String rm = strAt(rs, rRes);
+                if (rm != null && !rm.isEmpty() && !moduleByTbl.containsKey(t)) {
+                    moduleByTbl.put(t, rm);
+                }
+                String main = rMain > 0 ? strAt(rs, rMain) : "";
+                boolean isMaster = main != null && (main.indexOf("BD") >= 0
+                        || main.toLowerCase(Locale.ROOT).indexOf("smart") >= 0
+                        || main.trim().length() > 0);
+                if (isMaster) {
+                    masterByTbl.put(t, Boolean.TRUE);
+                }
+            }
+        } catch (Throwable e) {
+            progress.log("md_table 主从分组不可读(可忽略): " + e.getMessage());
+            return;
+        }
+        if (moduleByTbl.isEmpty()) {
+            return;
+        }
+        for (DataDictionary.Cls cl : id2Cls.values()) {
+            if (cl.tableName == null) continue;
+            String t = cl.tableName.toLowerCase(Locale.ROOT);
+            if (moduleByTbl.containsKey(t)) {
+                cl.resmodule = moduleByTbl.get(t);
+            }
+            if (Boolean.TRUE.equals(masterByTbl.get(t))) {
+                cl.isMaster = true;
+            }
+        }
+    }
+
+    private static String strAt(ResultSet rs, int idx) {
+        try {
+            return rs.getString(idx);
+        } catch (Exception e) {
+            return null;
         }
     }
 
