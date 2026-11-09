@@ -10,6 +10,7 @@ $out1 | Select-Object -First 60
 Write-Output ("MAIN_COMPILE_EXIT=" + $c1)
 if ($c1 -ne 0) { exit 1 }
 Copy-Item resources\template.html out\mainclasses\template.html -Force
+Copy-Item resources\chm_dictionary.json out\mainclasses\chm_dictionary.json -Force
 New-Item -ItemType Directory -Force -Path out\democlasses | Out-Null
 $dsrc = Get-ChildItem demo\src -Recurse -Filter *.java | ForEach-Object FullName
 $out2 = & $JAVAC -encoding UTF-8 -source 8 -target 8 -nowarn -Xlint:none -cp "out\mainclasses;$CP" -d out\democlasses $dsrc 2>&1

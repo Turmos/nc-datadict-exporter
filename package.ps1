@@ -34,6 +34,7 @@ if (Test-Path out\fat) { Remove-Item out\fat -Recurse -Force }
 New-Item -ItemType Directory -Force -Path out\fat | Out-Null
 Copy-Item out\mainclasses\* out\fat -Recurse -Force
 Copy-Item resources\template.html out\fat\ -Force
+Copy-Item resources\chm_dictionary.json out\fat\ -Force
 Copy-Item resources\app.png out\fat\ -Force
 Push-Location out\fat
 & $JAR xf ..\..\lib\fastjson-1.2.83.jar
@@ -106,6 +107,8 @@ NC 数据字典导出工具（NC6.5 / Oracle）
 【是什么】
 连 NC 6.5 的 Oracle 元数据库，导出成「离线」数据字典网页（单个 HTML 文件），
 可以发给任何人用浏览器直接打开查看，无需安装软件、无需联网。
+数据库里查不到中文名的表/字段，会自动用官方 NC65 数据字典（CHM 精简版，
+已内置在程序中）补充中文名，数据库已有的中文名不会被覆盖。
 
 【运行方式】
 方式一（绿色版，dist/ 目录）：

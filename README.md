@@ -12,6 +12,7 @@
 | `src/` | 主程序源码（纯 Swing + FlatLaf，JDK8+ 兼容） |
 | `demo/` | 演示数据导出（离线生成示例数据字典网页，无需连库） |
 | `resources/template.html` | 数据字典网页模板（经典蓝风格） |
+| `resources/chm_dictionary.json` | 官方 NC65 数据字典精简版（CHM→JSON，表/字段中文名兜底用，见 `tools/chm_to_json.py`） |
 | `drivers/` | JDBC 驱动（ojdbc6/8/11，可自行增减，运行时自动扫描加载） |
 | `lib/` | fastjson、flatlaf 依赖 |
 | `dist/` | 绿色版分发：可运行 jar + 驱动 + 启动批处理（需本机 Java 8+） |

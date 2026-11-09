@@ -1,6 +1,7 @@
 package com.bjuc.datadict.ui;
 
 import com.bjuc.datadict.Main;
+import com.bjuc.datadict.core.ChmDictionary;
 import com.bjuc.datadict.core.ConfigStore;
 import com.bjuc.datadict.core.DataSourceCfg;
 import com.bjuc.datadict.core.DictLoader;
@@ -1466,6 +1467,8 @@ public class MainFrame extends JFrame {
                     }
                 };
                 DataDictionary dict = loader.load(cfg, scope.isEmpty() ? null : scope, pr);
+                // 官方 NC65 数据字典兜底：数据库查不到的中文名（displayName 为空）按 CHM 补充
+                ChmDictionary.backfill(dict);
                 publish(new Object[]{"step", "正在生成网页…"});
                 // 固定 ASCII 命名：outDir/nc-datadict/index.html，数据文件自动生成到 nc-datadict/index_data/
                 File out = new File(new File(outDir, EXPORT_DIR_NAME), EXPORT_HTML_NAME);
